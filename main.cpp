@@ -355,7 +355,9 @@ extern "C" void commander_on_display_ready(IDisplay &d) {
 extern "C" void commander_on_touch_ready(Gt911Module &t) {
     g_touch = &t;
     // The touch layer must share the display's rotation or presses land rotated.
-    t.setRotation(g_lcd ? 0 : 0);
+    // Both default to 0 (portrait); if you change one, change both — or call
+    // `lcd rotate N` and `touch rotate N` together from the shell.
+    t.setRotation(0);
     t.onTouch(onTouch);
 }
 extern "C" void commander_on_joystick_ready(JoystickModule &j) {
