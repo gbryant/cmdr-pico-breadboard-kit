@@ -1,0 +1,45 @@
+target = "pico2"
+
+[module.buttons]
+pins = "15,14"
+active_low = "yes"
+debounce = 25
+
+[module.buzzer]
+pin = 13
+
+[module.gt911]
+sda = 8
+scl = 9
+addr = 93
+rotation = 0
+
+[module.i2c]
+sda = 8
+scl = 9
+
+[module.joystick]
+x = 26
+y = 27
+sw = -1
+deadzone = 30
+
+[module.leds]
+pins = "16,17"
+active_high = "yes"
+
+[module.st7796]
+sck = 2
+mosi = 3
+cs = 5
+dc = 6
+rst = 7
+bl = -1
+rotation = 0
+
+[module.wifi]
+
+[module.ws2812]
+pin = 12
+count = 1
+order = "GRB"

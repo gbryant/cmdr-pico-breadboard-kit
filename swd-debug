@@ -1,0 +1,20 @@
+#!/bin/bash
+# Start OpenOCD and attach gdb to the running firmware.
+#   (gdb) monitor reset init    reset and halt at the vector table
+#   (gdb) continue              run
+#   (gdb) ctrl-c                break in
+# OpenOCD is stopped when gdb exits.
+set -e
+cd "$(dirname "$0")"
+ELF="build-pico2/cmdr-pico-breadboard-kit.elf"
+[ -f "$ELF" ] || { echo "no $ELF — run ./build first"; exit 1; }
+
+openocd -f openocd.cfg >/tmp/openocd-cmdr-kit.log 2>&1 &
+OCD=$!
+trap 'kill $OCD 2>/dev/null' EXIT
+sleep 1
+kill -0 $OCD 2>/dev/null || { echo "openocd failed to start:"; cat /tmp/openocd-cmdr-kit.log; exit 1; }
+
+arm-none-eabi-gdb "$ELF" \
+    -ex "target extended-remote localhost:3333" \
+    -ex "set print pretty on"
