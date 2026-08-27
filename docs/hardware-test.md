@@ -1,11 +1,17 @@
 # Hardware bring-up checklist
 
 > **First pass: 2026-08-27.** Flashed over SWD through the RP2350-GEEK probe
-> ([cmdr-probe]). Every peripheral responded; the boxes ticked below are the ones
-> actually exercised, and the unticked ones are genuinely still open — notably
-> **touch corner mapping**, the panel's border/rotation checks, joystick
-> direction throws, WiFi (step 7 — `[wifi] connect=-7`, not connecting), and the
-> soak (step 8). Don't read the ticks as more than they are.
+> ([cmdr-probe]). Every peripheral responded. Touch corner mapping is confirmed
+> correct (step 4) and WiFi/telnet work (step 7 — the `[wifi] connect=-7` at boot
+> is a retry, not a failure). Still open: the panel's border/rotation checks,
+> joystick direction throws, and the soak (step 8). Don't read the ticks as more
+> than they are.
+>
+> A note on testing method, learned the hard way here: **prompts printed by a
+> host-side script are invisible until the command finishes**, so a test that
+> asks for a press at a particular moment silently collects nothing. Put the
+> prompt on the device's own screen, and let the test advance when the input
+> arrives rather than on a stopwatch.
 >
 > Two firmware bugs came out of it, both in commander's Pico HAL and both
 > invisible to the host tests, since the fake HAL has its own implementations:
@@ -133,8 +139,19 @@ touch watch    → live stream; ctrl-c or `touch stop` to end
 - [x] `touch info` reports `product: 911`, panel `320x480`, `state: ok`.
 - [x] Presses register (each one triggers the app's touch beep). Coordinate
       streaming itself not read back yet.
-- [ ] **Corners map correctly**: pressing the top-left of the glass gives a
-      coordinate near `0,0`; bottom-right near `319,479` (in rotation 0).
+- [x] **Corners map correctly** (2026-08-27, rotation 0). Measured by drawing a
+      target on screen and touching it, so display and touch are compared
+      directly rather than against an assumed orientation:
+
+      | pressed | reported |
+      |---------|----------|
+      | centre ≈ (160,240) | (140,214) |
+      | top-right (285,35) | (292,27)  |
+      | bottom-left (35,445) | (51,444) |
+
+      The two diagonal opposites are what make this conclusive: an x-flip would
+      put the top-right press near x=35, a y-flip near y=445, an axis swap at
+      (35,285), a 180° rotation at (35,445). **No `touch flip` needed.**
 
 *If `i2c scan` finds nothing:* the GT911's address depends on the INT pin level
 at reset — try `addr = 0x14`. If the bus is silent entirely, check GP8/GP9.
@@ -190,10 +207,12 @@ default), or `joy deadzone 40` to try a value live.
 
 ## 7. WiFi and telnet
 
-- [ ] The status screen shows an IP within ~15 s of boot.
-- [ ] `wifi status` agrees with it.
-- [ ] `telnet <ip>` (or the hostname) gives the same shell, and `touch watch`
-      streams over telnet as it does over serial.
+- [x] The status screen shows an IP within ~15 s of boot.
+- [x] `telnet <ip>` gives the same shell (confirmed 2026-08-27).
+- [ ] `wifi status` cross-check.
+- Note: `touch watch` and the other `watch` streams go to the **board console**,
+  not to the telnet session that started them — see `modules/ConsoleOut.h` for
+  why (a Writer is a stack local owned by one dispatch).
 
 ## 8. Long-run sanity
 
