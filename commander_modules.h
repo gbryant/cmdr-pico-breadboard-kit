@@ -55,6 +55,7 @@ inline void commander_register_modules(CommandRegistry &reg) {
     if (commander_on_display_ready) commander_on_display_ready(_m_st7796);
     reg.registerModule(_m_wifi);
     reg.registerModule(_m_ws2812);
+    _m_ws2812.setBrightness(10);
     if (commander_on_ws2812_ready) commander_on_ws2812_ready(_m_ws2812);
 }
 

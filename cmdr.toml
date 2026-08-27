@@ -43,3 +43,4 @@ rotation = 0
 pin = 12
 count = 1
 order = "GRB"
+brightness = 10

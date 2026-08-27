@@ -58,6 +58,10 @@ static void setEvent(const char *s) {
     g_event[i] = '\0';
 }
 
+// Colours here are full-scale hues. How bright the LED actually gets is the
+// `brightness` setting in cmdr.toml (10 on this board — these chips are searing
+// at full power), applied by the module on show(). Don't dim by picking small
+// values: that dims twice and makes the LED invisible.
 static void rgbSet(uint8_t r, uint8_t g, uint8_t b) {
     if (!g_rgb) return;
     g_rgb->fill(r, g, b);
@@ -290,9 +294,9 @@ public:
                     out.writeln("leds...");
                     if (g_leds) { g_leds->all(true);  hal_delay_ms(400); g_leds->all(false); }
                     out.writeln("rgb...");
-                    rgbSet(40, 0, 0); hal_delay_ms(250);
-                    rgbSet(0, 40, 0); hal_delay_ms(250);
-                    rgbSet(0, 0, 40); hal_delay_ms(250);
+                    rgbSet(255, 0, 0); hal_delay_ms(250);
+                    rgbSet(0, 255, 0); hal_delay_ms(250);
+                    rgbSet(0, 0, 255); hal_delay_ms(250);
                     rgbSet(0, 0, 0);
                     out.writeln("buzzer...");
                     if (g_buzz) g_buzz->playNamed("boot");
@@ -343,7 +347,7 @@ extern "C" void commander_setup(CommandRegistry &reg) {
     g_bootMs = (uint32_t)(hal_time_us() / 1000ULL);
     drawScreen();                          // the splash, once the panel is up
     if (g_buzz) g_buzz->playNamed("boot");
-    rgbSet(0, 0, 30);
+    rgbSet(0, 0, 255);
 }
 
 extern "C" void commander_on_app_tickers(UartTransport &uart) {
@@ -356,7 +360,7 @@ extern "C" void commander_on_wifi_connected() {
     setEvent("wifi up");
     if (g_screen == ScreenSplash) gotoScreen(ScreenStatus);
     else                          drawStatusValues();
-    rgbSet(0, 20, 0);
+    rgbSet(0, 255, 0);
 }
 
 // ── Module ready-hooks (called by the generated commander_modules.h) ─────────
