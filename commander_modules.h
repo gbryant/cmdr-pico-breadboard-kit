@@ -42,6 +42,7 @@ inline void commander_register_modules(CommandRegistry &reg) {
     reg.registerModule(_m_buttons);
     if (commander_on_buttons_ready) commander_on_buttons_ready(_m_buttons);
     reg.registerModule(_m_buzzer);
+    _m_buzzer.setVolume(0);
     if (commander_on_buzzer_ready) commander_on_buzzer_ready(_m_buzzer);
     hal_i2c_init(8, 9, 100000);
     reg.registerModule(_m_gt911);

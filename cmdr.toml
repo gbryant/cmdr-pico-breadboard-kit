@@ -7,7 +7,7 @@ debounce = 25
 
 [module.buzzer]
 pin = 13
-volume = 100
+volume = 0
 
 [module.gt911]
 sda = 8
