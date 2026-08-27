@@ -1,10 +1,32 @@
 # Hardware bring-up checklist
 
-Nothing in this project has met the real board yet. Everything here builds for
-RP2350 and the driver logic is covered by host tests against a recording HAL
-(`commander/tests/fakes`), which pins down the *logic* — register sequences,
-address-window arithmetic, coordinate mapping, debounce timing, note parsing.
-What it cannot tell you is whether a wire is where the datasheet says it is.
+> **First pass: 2026-08-27.** Flashed over SWD through the RP2350-GEEK probe
+> ([cmdr-probe]). Every peripheral responded; the boxes ticked below are the ones
+> actually exercised, and the unticked ones are genuinely still open — notably
+> **touch corner mapping**, the panel's border/rotation checks, joystick
+> direction throws, WiFi (step 7 — `[wifi] connect=-7`, not connecting), and the
+> soak (step 8). Don't read the ticks as more than they are.
+>
+> Two firmware bugs came out of it, both in commander's Pico HAL and both
+> invisible to the host tests, since the fake HAL has its own implementations:
+>
+> - `hal_pwm_stop()` disabled the PWM slice without settling the pin, freezing it
+>   high about half the time — the buzzer stuck in a continuous tone. Presented
+>   as an intermittent fault from *both* the touch and button paths, because both
+>   stop through the same call.
+> - `hal_i2c_write_read()` never sent a STOP when no read followed, leaving the
+>   GT911's touch-acknowledge write unterminated.
+>
+> What made the first one findable was instrumenting the buzzer to report its own
+> start/stop counts. `tones: 5, stops: 5, lost stops: 0` proved the module was
+> behaving and moved the search a layer down. Worth reaching for earlier next
+> time: make the suspect account for itself before reading its code again.
+
+The driver logic is covered by host tests against a recording HAL
+(`commander/tests/fakes`), which pins down register sequences, address-window
+arithmetic, coordinate mapping, debounce timing and note parsing. What it cannot
+tell you is whether a wire is where the datasheet says it is — or what state the
+HAL leaves a peripheral in, which is where both of the first pass's bugs lived.
 
 So this list is ordered by **what a failure would tell you**: each step assumes
 the ones above it worked, and each has a "if it fails" line naming the most
@@ -21,11 +43,12 @@ so the defaults in `cmdr.toml` can be corrected.
 ./bum          # or ./swd-flash if the probe is wired
 ```
 
-- [ ] The board enumerates and `./monitor` shows the greeting.
-- [ ] `help` lists: `help`, `version`, `lcd`, `touch`, `joy`, `btn`, `led`,
+- [x] The board enumerates and `./monitor` shows the greeting.
+- [x] `help` lists: `help`, `version`, `lcd`, `touch`, `joy`, `btn`, `led`,
       `buzz`, `wled`, `wifi`, `i2c`, `kit`, `bootsel`.
-- [ ] `help` does **not** print a dropped-command warning.
-- [ ] The greeting is not preceded by `[warn] too many tickers`.
+- [x] `help` does **not** print a dropped-command warning.
+- [x] No `[warn] too many tickers` (6 tickers against a cap of 8, so a drop
+      isn't reachable — but the greeting itself wasn't captured).
 
 *If the console is silent:* USB CDC needs a moment after enumeration — the
 transport waits 1.5 s before printing. If it stays silent, it's the build/flash
@@ -40,10 +63,10 @@ will say so.
 These need no bus, so they isolate "is the firmware running at all" from "is a
 peripheral mis-wired".
 
-- [ ] `led 0 on` / `led 1 on` light D1 / D2. `led all off` clears them.
+- [x] `led 0 on` / `led 1 on` light D1 / D2. `led all off` clears them.
 - [ ] `led 0 blink 250` blinks without blocking the shell (you can still type).
-- [ ] `buzz 1000 200` makes a tone.
-- [ ] `buzz play c4:200,e4:200,g4:400` plays three rising notes, and the console
+- [x] `buzz 1000 200` makes a tone.
+- [x] `buzz play c4:200,e4:200,g4:400` plays three rising notes, and the console
       stays responsive during playback.
 
 *If an LED is inverted* (lit when "off"): set `active_high = "no"` in
@@ -55,9 +78,9 @@ that's a different module, not a tuning change.
 
 ## 2. The RGB LED — first PIO check
 
-- [ ] `wled 40 0 0` → red, `wled 0 40 0` → green, `wled 0 0 40` → blue.
+- [x] `wled 40 0 0` → red, `wled 0 40 0` → green (blue not tried).
 - [ ] `wled test` cycles all three.
-- [ ] `wled off` clears it.
+- [x] `wled off` clears it.
 
 *If the colours are permuted* (red shows green): the chip's wire order isn't GRB.
 Set `order` in `[module.ws2812]` — the module supports all six permutations.
@@ -72,7 +95,7 @@ lcd            → panel info: size, rotation, SPI bus/speed, pins
 lcd test       → colour bars, a 1px white border, text at three scales
 ```
 
-- [ ] `lcd test` draws eight colour bars across the top half.
+- [x] `lcd test` draws eight colour bars across the top half.
 - [ ] The white border reaches all four edges — a missing edge line means the
       address window is off by one, not a wiring fault.
 - [ ] Text at scale 1, 2 and 3 is legible and not mirrored.
@@ -106,9 +129,10 @@ touch          → one reading
 touch watch    → live stream; ctrl-c or `touch stop` to end
 ```
 
-- [ ] `i2c scan` finds the controller.
-- [ ] `touch info` reports a product id (usually `911…`) and a sane resolution.
-- [ ] `touch watch` reports a coordinate when you press, `release` when you let go.
+- [x] `i2c scan` finds the controller — `device at 0x5d`.
+- [x] `touch info` reports `product: 911`, panel `320x480`, `state: ok`.
+- [x] Presses register (each one triggers the app's touch beep). Coordinate
+      streaming itself not read back yet.
 - [ ] **Corners map correctly**: pressing the top-left of the glass gives a
       coordinate near `0,0`; bottom-right near `319,479` (in rotation 0).
 
@@ -136,7 +160,8 @@ joy            → normalized position and direction
 joy watch      → stream direction changes
 ```
 
-- [ ] At rest, `joy` reads near `x=0 y=0` and direction `center`.
+- [x] At rest, `joy` reads `x=5 y=6`, direction `center` (raw 1964/2285 against
+      a measured centre of 1951/2272).
 - [ ] Pushing each way reports `left` / `right` / `up` / `down`, and the
       magnitude reaches roughly ±1000 at full deflection.
 - [ ] `joy cal` (stick centred) re-centres it if the rest position has drifted.

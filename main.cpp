@@ -183,11 +183,23 @@ static void playKey(int key) {
     setEvent(msg);
 }
 
+static bool g_touchDown = false;    // so a beep is one-per-press, not per-event
+
 static void onTouch(const TouchPoint &p, void *) {
+    // Beep on the press EDGE only. The module reports movement as well as
+    // press/release, so beeping on every event turns a finger held on the glass
+    // into a continuous tone — which is exactly what it did.
+    bool wasDown = g_touchDown;
+    g_touchDown = p.pressed;
     if (!p.pressed) return;
+    bool pressEdge = !wasDown;
     if (g_screen == ScreenPiano && g_lcd) {
+        // Re-strike only when the finger lands, or slides to a different key —
+        // not on every reported movement within one key.
         int keyH = g_lcd->height() / kPianoKeys;
-        playKey(p.y / (keyH ? keyH : 1));
+        int key = p.y / (keyH ? keyH : 1);
+        static int lastKey = -1;
+        if (pressEdge || key != lastKey) { lastKey = key; playKey(key); }
         return;
     }
     char msg[32];
@@ -197,7 +209,7 @@ static void onTouch(const TouchPoint &p, void *) {
     n = appendUInt(msg, n, sizeof(msg), (uint32_t)(p.y < 0 ? 0 : p.y));
     setEvent(msg);
     drawStatusValues();
-    if (g_buzz) g_buzz->tone(1200, 30);
+    if (pressEdge && g_buzz) g_buzz->tone(1200, 30);
 }
 
 static void onJoystick(JoyDir d, void *) {
