@@ -12,7 +12,7 @@ pico_sdk_init()
 include(FetchContent)
 FetchContent_Declare(commander
     GIT_REPOSITORY https://github.com/gbryant/commander.git
-    GIT_TAG        v1.1
+    GIT_TAG        v1.2
 )
 # Local commander source override — managed by `cmdr link` / `cmdr unlink`.
 include(${CMAKE_SOURCE_DIR}/commander_local.cmake OPTIONAL)

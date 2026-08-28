@@ -22,11 +22,17 @@ reachable from a shell over USB serial or telnet:
 here is the *composition*: which screen is showing, what a touch means right now,
 what the stick and buttons do.
 
-> **Status: not yet hardware-tested.** Everything builds for RP2350 and the
-> drivers are covered by host tests against a recording HAL (every byte they'd
-> put on SPI/I2C is asserted), but no part of this has met the actual board yet.
-> [`docs/hardware-test.md`](docs/hardware-test.md) is the bring-up checklist,
-> in the order things should be switched on.
+> **Hardware-confirmed 2026-08-27** on a Pico 2 W, flashed over SWD through a
+> Waveshare RP2350-GEEK probe. Panel, touch (including corner mapping), joystick,
+> buttons, LEDs, buzzer, RGB LED and WiFi/telnet all working.
+> [`docs/hardware-test.md`](docs/hardware-test.md) records the bring-up
+> checklist, what each result was, and what is still unexercised — the panel's
+> border/rotation checks, joystick direction throws, and a long soak.
+>
+> The drivers were written against a recording HAL and host-tested before any of
+> it met the board, which caught the logic but not two HAL bugs that only
+> hardware could show: an I2C write with no STOP, and a PWM stop that left the
+> pin high. Both are fixed in commander v1.2; the story is in the checklist.
 
 ## Screens
 
@@ -65,6 +71,16 @@ The panel's backlight is hard-wired on for this kit, so `lcd bl 0` falls back to
 the panel's own display-off rather than dimming. If you wire the backlight to a
 spare GPIO, set `bl` in `cmdr.toml` and it becomes a real PWM dimmer.
 
+**Two defaults that will look like faults if you don't know them**, both set in
+`cmdr.toml` because "how loud and how bright may this board be" is a property of
+the room, not the code:
+
+- **The buzzer ships muted** (`volume = 0`). `buzz vol 100` for the session, or
+  change `cmdr.toml` and reflash. Everything still runs while muted — a melody
+  plays silently and finishes on schedule — so behaviour doesn't change with it.
+- **The RGB LED runs at `brightness = 10`** of 255. These chips are searing at
+  full scale. Colours in the app are full-scale hues; brightness sets the level.
+
 ## Build and run
 
 Needs `PICO_SDK_PATH` and `FREERTOS_KERNEL_PATH` set — see commander's
@@ -75,6 +91,10 @@ Needs `PICO_SDK_PATH` and `FREERTOS_KERNEL_PATH` set — see commander's
 ./bum          # build + upload (BOOTSEL) + monitor
 ./monitor      # console only
 ```
+
+If you have a CMSIS-DAP probe wired up, `./swd-flash` (below) is the better
+upload: no BOOTSEL, it verifies what it wrote, and it still works when the
+firmware on the board is too wedged to be told to reboot.
 
 WiFi credentials live in `secrets.h` (gitignored; `secrets.h.example` is the
 template). Telnet comes up on port 23 once WiFi connects, and the status screen
@@ -96,25 +116,23 @@ it's a wiring description, not a build artifact.
 
 ## Framework dependency
 
-This project uses framework modules that are **not in a released commander tag
-yet** — they live on the `feat/pico-breadboard-kit` branch, together with the
-HAL's new SPI/ADC/PWM entry points that the display, joystick and buzzer need.
-
-Until that branch is merged and tagged, build against a local checkout:
+Pinned to **commander v1.2**, which is the release that introduced the modules
+this board needs — `st7796`, `gt911`, `joystick`, `buttons`, `leds`, `buzzer`,
+and the Pico HAL's SPI/ADC/PWM. `CMakeLists.txt` fetches it; nothing else is
+required.
 
 ```bash
-cmdr link ~/github/commander      # with the branch checked out
+cmdr pin            # show the current pin
+cmdr link <path>    # build against a local commander checkout instead
 ```
 
-`cmdr.toml` and `commander_modules.h` are otherwise ordinary: once the branch
-ships in a release, `cmdr unlink && cmdr pin <tag> && cmdr pull` moves this
-project onto it.
+Every pin on this board lives in `cmdr.toml`, not in the app — change a pin
+there and `cmdr regen`.
 
 ## What came from where
 
-This is a rewrite of an earlier non-commander project
-(`~/pico2/pico_breadboard_kit`), which drove the same board with LVGL and a pile
-of vendor demo code. What carried over is the hardware knowledge — the ST7796
+This is a rewrite of an earlier, non-commander project that drove the same board
+with LVGL and a pile of vendor demo code. What carried over is the hardware knowledge — the ST7796
 init path, the GT911 register map, the WS2812 PIO program, the kit's pinout — and
 what changed is where it lives: reusable drivers went into the framework as
 modules, so the next ST7796 or GT911 project doesn't start from a vendor demo.

@@ -1,7 +1,8 @@
 # Hardware bring-up checklist
 
 > **First pass: 2026-08-27.** Flashed over SWD through the RP2350-GEEK probe
-> ([cmdr-probe]). Every peripheral responded. Touch corner mapping is confirmed
+> (a Waveshare RP2350-GEEK running debugprobe with a
+> commander status screen). Every peripheral responded. Touch corner mapping is confirmed
 > correct (step 4) and WiFi/telnet work (step 7 — the `[wifi] connect=-7` at boot
 > is a retry, not a failure). Still open: the panel's border/rotation checks,
 > joystick direction throws, and the soak (step 8). Don't read the ticks as more
