@@ -60,6 +60,9 @@ Pin assignments are the kit's, recorded in `cmdr.toml`. Change them there and ru
 | Buzzer | GP13 (PWM) | `buzzer` |
 | RGB LED (WS2812) | GP12 (PIO) | `ws2812` |
 
+[`docs/hardware-test.md`](docs/hardware-test.md) is the bring-up checklist for
+this board — ordered by what a failure at each step would tell you.
+
 The panel's backlight is hard-wired on for this kit, so `lcd bl 0` falls back to
 the panel's own display-off rather than dimming. If you wire the backlight to a
 spare GPIO, set `bl` in `cmdr.toml` and it becomes a real PWM dimmer.
@@ -78,36 +81,25 @@ because they're a property of the room rather than the code:
 
 ## Build and run
 
-Needs `PICO_SDK_PATH` and `FREERTOS_KERNEL_PATH` set — see commander's
+Needs commander's [`cmdr`](https://github.com/gbryant/commander) tool, with
+`PICO_SDK_PATH` and `FREERTOS_KERNEL_PATH` set — see
 [getting-started](https://github.com/gbryant/commander/blob/main/docs/getting-started.md).
 
 ```bash
+cmdr regen     # generate commander_modules.h and the dev scripts below
 ./build        # cmake build → build-pico2/
 ./bum          # build + upload (BOOTSEL) + monitor
 ./monitor      # console only
 ```
 
-If you have a CMSIS-DAP probe wired up, `./swd-flash` (below) is the better
-upload: no BOOTSEL, it verifies what it wrote, and it still works when the
-firmware on the board is too wedged to be told to reboot.
+`build`, `bum`, `upload` and `monitor` are generated rather than committed —
+they bake in local SDK paths, so a fresh clone starts with `cmdr regen`. The
+repo also carries `swd-flash` / `swd-debug` / `swd-reset` and `openocd.cfg` for
+flashing and debugging through a CMSIS-DAP probe instead of BOOTSEL.
 
 WiFi credentials live in `secrets.h` (gitignored; `secrets.h.example` is the
 template). Telnet comes up on port 23 once WiFi connects, and the status screen
 shows the IP.
-
-### Debugging over SWD
-
-With a CMSIS-DAP probe (the RP2350 debug probe, or a spare Pico running
-`debugprobe`) wired SWCLK/SWDIO/GND to the kit:
-
-```bash
-./swd-flash    # flash over SWD — no BOOTSEL, board stays wired
-./swd-debug    # openocd + arm-none-eabi-gdb attached
-./swd-reset    # reset the board when the console is wedged
-```
-
-`openocd.cfg` is committed (unlike the generated `build`/`bum` scripts) because
-it's a wiring description, not a build artifact.
 
 ## Framework dependency
 
@@ -127,10 +119,11 @@ there and `cmdr regen`.
 ## What came from where
 
 This is a rewrite of an earlier, non-commander project that drove the same board
-with LVGL and a pile of vendor demo code. What carried over is the hardware knowledge — the ST7796
-init path, the GT911 register map, the WS2812 PIO program, the kit's pinout — and
-what changed is where it lives: reusable drivers went into the framework as
-modules, so the next ST7796 or GT911 project doesn't start from a vendor demo.
+with LVGL and a pile of vendor demo code. What carried over is the hardware
+knowledge — the ST7796 init path, the GT911 register map, the WS2812 PIO
+program, the kit's pinout — and what changed is where it lives: reusable
+drivers went into the framework as modules, so the next ST7796 or GT911 project
+doesn't start from a vendor demo.
 
 Two deliberate departures from the original:
 
@@ -140,3 +133,7 @@ Two deliberate departures from the original:
 - **Nothing blocks.** The original bit-banged the buzzer in a busy loop with the
   scheduler running. Tones and melodies here are advanced from `tick()`, so the
   shell stays live while a melody plays.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
