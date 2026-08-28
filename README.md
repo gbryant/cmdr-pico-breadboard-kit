@@ -120,24 +120,6 @@ cmdr link <path>    # build against a local commander checkout instead
 Every pin on this board lives in `cmdr.toml`, not in the app — change a pin
 there and `cmdr regen`.
 
-## What came from where
-
-This is a rewrite of an earlier, non-commander project that drove the same board
-with LVGL and a pile of vendor demo code. What carried over is the hardware
-knowledge — the ST7796 init path, the GT911 register map, the WS2812 PIO
-program, the kit's pinout — and what changed is where it lives: reusable
-drivers went into the framework as modules, so the next ST7796 or GT911 project
-doesn't start from a vendor demo.
-
-Two deliberate departures from the original:
-
-- **Buttons are polled and debounced by time, not by edge interrupts.** The
-  original used edge IRQs with a 2 ms guard and printed from inside the ISR,
-  which is a reliable way to collect phantom presses.
-- **Nothing blocks.** The original bit-banged the buzzer in a busy loop with the
-  scheduler running. Tones and melodies here are advanced from `tick()`, so the
-  shell stays live while a melody plays.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
