@@ -27,18 +27,6 @@ what the stick and buttons do.
 *The Status screen: hostname, IP, uptime and the last input event. The RGB LED is
 green, the SWD cable on the left goes to the probe that flashed it.*
 
-> **Hardware-confirmed 2026-08-27** on a Pico 2 W, flashed over SWD through a
-> Waveshare RP2350-GEEK probe. Panel, touch (including corner mapping), joystick,
-> buttons, LEDs, buzzer, RGB LED and WiFi/telnet all working.
-> [`docs/hardware-test.md`](docs/hardware-test.md) records the bring-up
-> checklist, what each result was, and what is still unexercised — the panel's
-> border/rotation checks, joystick direction throws, and a long soak.
->
-> The drivers were written against a recording HAL and host-tested before any of
-> it met the board, which caught the logic but not two HAL bugs that only
-> hardware could show: an I2C write with no STOP, and a PWM stop that left the
-> pin high. Both are fixed in commander v1.2; the story is in the checklist.
-
 ## Screens
 
 | Screen | What it shows |
