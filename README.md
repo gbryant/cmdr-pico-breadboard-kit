@@ -92,13 +92,14 @@ cmdr regen     # generate commander_modules.h and the dev scripts below
 ./monitor      # console only
 ```
 
-`build`, `bum`, `upload` and `monitor` are generated rather than committed —
-they bake in local SDK paths, so a fresh clone starts with `cmdr regen`.
+Every script here is generated rather than committed — they bake in local SDK
+paths — so a fresh clone starts with `cmdr regen`.
 
-`swd-flash` / `swd-debug` / `swd-reset` and `openocd.cfg` *are* committed,
-because cmdr doesn't generate them: they're hand-written source, not artifacts.
-They flash and debug through a CMSIS-DAP probe instead of BOOTSEL, which keeps
-the board wired and works when the firmware is too wedged to reboot on command.
+This project also has `cmdr enable debug` turned on, which adds `./flash`
+(over SWD, verified, no BOOTSEL), `./debug` (openocd + gdb) and `./reset`, for
+when a CMSIS-DAP probe is wired to the kit. `./upload` is unaffected and still
+uses BOOTSEL. The `[debug]` section of `cmdr.toml` is the whole configuration;
+see [cmdr's reference](https://github.com/gbryant/commander/blob/main/docs/cmdr.md).
 
 WiFi credentials live in `secrets.h` (gitignored; `secrets.h.example` is the
 template). Telnet comes up on port 23 once WiFi connects, and the status screen
@@ -106,10 +107,10 @@ shows the IP.
 
 ## Framework dependency
 
-Pinned to **commander v1.2**, which is the release that introduced the modules
-this board needs — `st7796`, `gt911`, `joystick`, `buttons`, `leds`, `buzzer`,
-and the Pico HAL's SPI/ADC/PWM. `CMakeLists.txt` fetches it; nothing else is
-required.
+Pinned to **commander v1.3**. v1.2 introduced the modules this board needs —
+`st7796`, `gt911`, `joystick`, `buttons`, `leds`, `buzzer`, and the Pico HAL's
+SPI/ADC/PWM — and v1.3 added `cmdr enable debug`, which generates this project's
+SWD scripts. `CMakeLists.txt` fetches it; nothing else is required.
 
 ```bash
 cmdr pin            # show the current pin

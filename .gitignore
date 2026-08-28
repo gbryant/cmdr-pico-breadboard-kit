@@ -28,3 +28,8 @@ __pycache__/
 
 # Local commander source link (cmdr link)
 commander_local.cmake
+
+# cmdr-generated SWD files (`cmdr enable debug`) — `cmdr regen` puts them back
+/debug
+/reset
+/openocd.cfg

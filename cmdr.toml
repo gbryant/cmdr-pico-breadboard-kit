@@ -1,5 +1,10 @@
 target = "pico2"
 
+[debug]
+probe = "cmsis-dap"
+target_cfg = "target/rp2350.cfg"
+speed = 5000
+
 [module.buttons]
 pins = "15,14"
 active_low = "yes"

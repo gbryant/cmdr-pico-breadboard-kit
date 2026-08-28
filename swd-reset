@@ -1,5 +1,0 @@
-#!/bin/bash
-# Reset the board over SWD (useful when the console is wedged).
-set -e
-cd "$(dirname "$0")"
-openocd -f openocd.cfg -c "init; reset run; exit"

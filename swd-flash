@@ -1,9 +1,0 @@
-#!/bin/bash
-# Flash over SWD through the debug probe — no BOOTSEL button, no dragging a .uf2.
-# This is the whole point of having the probe: the board can stay wired up.
-set -e
-cd "$(dirname "$0")"
-ELF="build-pico2/cmdr-pico-breadboard-kit.elf"
-[ -f "$ELF" ] || { echo "no $ELF — run ./build first"; exit 1; }
-echo "flashing $ELF over SWD..."
-openocd -f openocd.cfg -c "program $ELF verify reset exit"
