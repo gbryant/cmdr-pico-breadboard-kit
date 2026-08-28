@@ -22,6 +22,11 @@ reachable from a shell over USB serial or telnet:
 here is the *composition*: which screen is showing, what a touch means right now,
 what the stick and buttons do.
 
+![The kit running the Status screen](docs/img/board.jpg)
+
+*The Status screen: hostname, IP, uptime and the last input event. The RGB LED is
+green, the SWD cable on the left goes to the probe that flashed it.*
+
 > **Hardware-confirmed 2026-08-27** on a Pico 2 W, flashed over SWD through a
 > Waveshare RP2350-GEEK probe. Panel, touch (including corner mapping), joystick,
 > buttons, LEDs, buzzer, RGB LED and WiFi/telnet all working.
