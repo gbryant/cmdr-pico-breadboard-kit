@@ -71,15 +71,17 @@ The panel's backlight is hard-wired on for this kit, so `lcd bl 0` falls back to
 the panel's own display-off rather than dimming. If you wire the backlight to a
 spare GPIO, set `bl` in `cmdr.toml` and it becomes a real PWM dimmer.
 
-**Two defaults that will look like faults if you don't know them**, both set in
-`cmdr.toml` because "how loud and how bright may this board be" is a property of
-the room, not the code:
+**How loud and how bright this board is** are set in `cmdr.toml`, not in the app,
+because they're a property of the room rather than the code:
 
-- **The buzzer ships muted** (`volume = 0`). `buzz vol 100` for the session, or
-  change `cmdr.toml` and reflash. Everything still runs while muted — a melody
-  plays silently and finishes on schedule — so behaviour doesn't change with it.
-- **The RGB LED runs at `brightness = 10`** of 255. These chips are searing at
-  full scale. Colours in the app are full-scale hues; brightness sets the level.
+- **`[module.buzzer] volume = 100`** — full. `buzz vol 0` mutes it for the
+  session (useful when you're testing all day near other people or animals);
+  `volume = 0` in `cmdr.toml` mutes it from boot. Muting changes nothing but the
+  sound: a melody still runs and finishes on schedule, so app behaviour is
+  identical either way.
+- **`[module.ws2812] brightness = 25`** of 255. These chips are searing at full
+  scale, so the app expresses colours as full-scale hues and lets brightness set
+  the level. Don't dim by picking small RGB values — that dims twice.
 
 ## Build and run
 

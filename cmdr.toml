@@ -7,7 +7,7 @@ debounce = 25
 
 [module.buzzer]
 pin = 13
-volume = 0
+volume = 100
 
 [module.gt911]
 sda = 8
@@ -44,4 +44,4 @@ rotation = 0
 pin = 12
 count = 1
 order = "GRB"
-brightness = 10
+brightness = 25

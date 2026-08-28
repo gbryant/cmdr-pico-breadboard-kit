@@ -42,7 +42,6 @@ inline void commander_register_modules(CommandRegistry &reg) {
     reg.registerModule(_m_buttons);
     if (commander_on_buttons_ready) commander_on_buttons_ready(_m_buttons);
     reg.registerModule(_m_buzzer);
-    _m_buzzer.setVolume(0);
     if (commander_on_buzzer_ready) commander_on_buzzer_ready(_m_buzzer);
     hal_i2c_init(8, 9, 100000);
     reg.registerModule(_m_gt911);
@@ -56,7 +55,7 @@ inline void commander_register_modules(CommandRegistry &reg) {
     if (commander_on_display_ready) commander_on_display_ready(_m_st7796);
     reg.registerModule(_m_wifi);
     reg.registerModule(_m_ws2812);
-    _m_ws2812.setBrightness(10);
+    _m_ws2812.setBrightness(25);
     if (commander_on_ws2812_ready) commander_on_ws2812_ready(_m_ws2812);
 }
 
