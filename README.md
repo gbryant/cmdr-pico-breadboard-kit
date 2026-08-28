@@ -93,9 +93,12 @@ cmdr regen     # generate commander_modules.h and the dev scripts below
 ```
 
 `build`, `bum`, `upload` and `monitor` are generated rather than committed —
-they bake in local SDK paths, so a fresh clone starts with `cmdr regen`. The
-repo also carries `swd-flash` / `swd-debug` / `swd-reset` and `openocd.cfg` for
-flashing and debugging through a CMSIS-DAP probe instead of BOOTSEL.
+they bake in local SDK paths, so a fresh clone starts with `cmdr regen`.
+
+`swd-flash` / `swd-debug` / `swd-reset` and `openocd.cfg` *are* committed,
+because cmdr doesn't generate them: they're hand-written source, not artifacts.
+They flash and debug through a CMSIS-DAP probe instead of BOOTSEL, which keeps
+the board wired and works when the firmware is too wedged to reboot on command.
 
 WiFi credentials live in `secrets.h` (gitignored; `secrets.h.example` is the
 template). Telnet comes up on port 23 once WiFi connects, and the status screen
